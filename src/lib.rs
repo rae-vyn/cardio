@@ -1,4 +1,4 @@
-use rand::{prelude::*, rngs};
+use rand::prelude::*;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Suit {

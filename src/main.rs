@@ -14,22 +14,23 @@ fn is_king(card: Card) -> bool {
 fn main() {
     let jokerless_deck = Deck::full_no_jokers();
 
-    let runs: Vec<bool> = (1u8..100)
+    let runs: Vec<bool> = (1u8..=100)
         .map(|_| is_king(jokerless_deck.pick_random()))
         .collect();
 
-    let _trues = runs
+    let trues = runs
         .clone()
         .into_iter()
         .filter(|x| *x)
         .collect::<Vec<bool>>()
-        .len() as u16;
+        .len() as f32;
     let falses = runs
         .clone()
         .into_iter()
         .filter(|x| !*x)
         .collect::<Vec<bool>>()
-        .len() as u16;
+        .len() as f32;
+    println!("{} {}", trues, falses);
 
-    println!("Chances of getting a king: {:?}", ((100-falses)/100) as f32);
+    println!("Chances of getting a king: {:#?}", (trues/100f32) as f32);
 }
