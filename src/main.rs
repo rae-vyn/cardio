@@ -1,8 +1,14 @@
-use cardio::CardBuilder;
-use clap::Parser;
+use cardio::Deck;
 
 fn main() {
-    let matches = CardBuilder::parse().verify().unwrap();
+    let mut jokerless_deck = Deck::full_no_jokers();
 
-    println!("{}", matches);
+    for _ in 1u8..=10 {
+        println!("{:?}", jokerless_deck.pick_random());
+    }
+    println!("{}", jokerless_deck.card_count());
+    for _ in 1u8..=10 {
+        println!("{:?}", jokerless_deck.take_random());
+    }
+    println!("{}", jokerless_deck.card_count());
 }

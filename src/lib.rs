@@ -1,68 +1,123 @@
-use clap::Parser;
-use std::fmt::{self, Formatter};
+use rand::{prelude::*, rngs};
 
-#[derive(Debug, Parser, Copy, Clone)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Suit {
     Hearts,
+    Diamonds,
     Clubs,
     Spades,
-    Diamonds
 }
 
-#[derive(Parser, Debug)]
-pub struct CardBuilder {
-    pub suit: String,
-    pub value: u8
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum CardType {
+    Number(u8),
+    King,
+    Queen,
+    Joker,
+    Jack,
+    Ace,
 }
 
-impl CardBuilder {
-    pub fn verify(&self) -> Option<Card> {
-        let suit = match self.suit.to_lowercase().as_str() {
-            "hearts"   | "heart"   | "h" => Suit::Hearts,
-            "clubs"    | "club"    | "c" => Suit::Clubs,
-            "spades"   | "spade"   | "s" => Suit::Spades,
-            "diamonds" | "diamond" | "d" => Suit::Diamonds,
-            _ => panic!("Wrong suit: {}", self.suit)
-        };
-
-        if self.value <= 15 {
-            Some(Card {
-                suit,
-                value: self.value
-            })
-        } else {
-            None
-        }
-
-    }
-}
-
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Card {
     suit: Suit,
-    value: u8
+    card_type: CardType,
 }
 
-impl fmt::Display for Card {
-    fn fmt(&self, buf: &mut Formatter<'_>) -> Result<(), std::fmt::Error>{
-        let plainstr = format!("{}", self.value);
-        let numstr = match self.value {
-            0 => "Ace",
-            12 => "Jack",
-            13 => "Queen",
-            14 => "King",
-            15 => "Joker",
-            _ => plainstr.as_str()
-        };
-
-        write!(buf, "{} of {:?}", numstr, self.suit)
-    }
+#[derive(Clone, Debug)]
+pub struct Deck {
+    cards: Vec<Card>,
 }
 
 impl Card {
-    pub fn suit(&self) -> Suit {
-        return self.suit;
+    pub fn new(suit: Suit, card_type: CardType) -> Self {
+        if let CardType::Number(x) = card_type {
+            if (x > 10) || (x < 2) {
+                panic!("wrong card size for {:?} of {:?}!", x, suit);
+            }
+        }
+        Card { suit, card_type }
     }
-    pub fn value(&self) -> u8 {
-        return self.value;
+    pub fn suit(&self) -> Suit {
+        self.suit
+    }
+    pub fn card_type(&self) -> CardType {
+        self.card_type
+    }
+    pub fn get_value(&self) -> Option<u8> {
+        match self.card_type {
+            CardType::Number(x) => Some(x),
+            _ => None,
+        }
+    }
+}
+
+impl Deck {
+    pub fn empty() -> Self {
+        Self { cards: vec![] }
+    }
+    pub fn add(&mut self, suit: Suit, card_type: CardType) {
+        self.cards.push(Card::new(suit, card_type));
+    }
+    pub fn full() -> Self {
+        let mut temp = Deck::empty();
+        let faces = vec![
+            CardType::King,
+            CardType::Queen,
+            CardType::Ace,
+            CardType::Joker,
+            CardType::Jack,
+        ];
+        let suits = vec![Suit::Hearts, Suit::Diamonds, Suit::Clubs, Suit::Spades];
+        for suit in suits {
+            // Add all the numbers.
+            for i in 2u8..=10 {
+                temp.add(suit, CardType::Number(i))
+            }
+            // Add all the face cards.
+            for face in faces.iter() {
+                temp.add(suit, *face)
+            }
+        }
+        temp
+    }
+    pub fn full_no_jokers() -> Self {
+        let mut temp = Deck::empty();
+        let faces = vec![
+            CardType::King,
+            CardType::Queen,
+            CardType::Ace,
+            CardType::Jack,
+        ];
+        let suits = vec![Suit::Hearts, Suit::Diamonds, Suit::Clubs, Suit::Spades];
+        for suit in suits {
+            // Add all the numbers.
+            for i in 2u8..=10 {
+                temp.add(suit, CardType::Number(i))
+            }
+            // Add all the face cards.
+            for face in faces.iter() {
+                temp.add(suit, *face)
+            }
+        }
+        temp
+    }
+    pub fn card_count(&self) -> u8 {
+        self.cards.len() as u8
+    }
+    pub fn filter(&self, check: fn(&Card) -> Option<Card>) -> Vec<Card> {
+        self.cards.iter().filter_map(check).collect()
+    }
+    pub fn pick_random(&self) -> Card {
+        let mut rng = thread_rng();
+        *self.cards.choose(&mut rng).unwrap()
+    }
+    pub fn take_random(&mut self) -> Card {
+        let (i, &card) = self.cards.iter()
+                       .enumerate()
+                       .choose(&mut thread_rng())
+                       .unwrap();
+        self.cards.remove(i);
+        card
     }
 }
