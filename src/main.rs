@@ -1,14 +1,35 @@
-use cardio::Deck;
+use cardio::{Card, Deck};
+
+fn _scenario(condition: fn(Card) -> bool, deck: Deck) -> bool {
+    for card in deck.cards() {
+        return condition(card);
+    }
+    return false;
+}
+
+fn is_king(card: Card) -> bool {
+    card.card_type() == cardio::CardType::King
+}
 
 fn main() {
-    let mut jokerless_deck = Deck::full_no_jokers();
+    let jokerless_deck = Deck::full_no_jokers();
 
-    for _ in 1u8..=10 {
-        println!("{:?}", jokerless_deck.pick_random());
-    }
-    println!("{}", jokerless_deck.card_count());
-    for _ in 1u8..=10 {
-        println!("{:?}", jokerless_deck.take_random());
-    }
-    println!("{}", jokerless_deck.card_count());
+    let runs: Vec<bool> = (1u8..100)
+        .map(|_| is_king(jokerless_deck.pick_random()))
+        .collect();
+
+    let _trues = runs
+        .clone()
+        .into_iter()
+        .filter(|x| *x)
+        .collect::<Vec<bool>>()
+        .len() as u16;
+    let falses = runs
+        .clone()
+        .into_iter()
+        .filter(|x| !*x)
+        .collect::<Vec<bool>>()
+        .len() as u16;
+
+    println!("Chances of getting a king: {:?}", ((100-falses)/100) as f32);
 }

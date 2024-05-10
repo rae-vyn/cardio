@@ -120,4 +120,7 @@ impl Deck {
         self.cards.remove(i);
         card
     }
+    pub fn cards(&self) -> Vec<Card> {
+        self.cards.clone()
+    }
 }
